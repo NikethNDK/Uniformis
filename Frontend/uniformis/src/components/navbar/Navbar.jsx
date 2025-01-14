@@ -33,7 +33,7 @@ const Navbar = () => {
 
   const ProfileMenu = () => (
     <div className="profile-menu">
-      <Link to="/profile" className="profile-menu-item">
+      <Link to="/user-profile" className="profile-menu-item">
         <User size={18} />
         <span>Profile</span>
       </Link>

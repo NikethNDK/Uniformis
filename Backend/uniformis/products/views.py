@@ -1,9 +1,9 @@
 # views.py
 from rest_framework import viewsets, permissions, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action,api_view
 from rest_framework.response import Response
 from django.db.models import Count, Avg
-from .models import Category, Product, ProductVariant, Review, Offer
+from .models import Category, Product, ProductVariant, Review, Offer,ProductImage
 from .serializers import (
     CategorySerializer, ProductSerializer, ProductVariantSerializer,
     ReviewSerializer, ProductDetailSerializer
@@ -63,3 +63,54 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+@api_view(['POST'])
+def add_product(request):
+    # product_serializer = ProductSerializer(data=request.data)
+    # if product_serializer.is_valid():
+    #     product = product_serializer.save()
+    #     images = request.FILES.getlist('images')
+    #     for image in images:
+    #         ProductImage.objects.create(product=product, image=image)
+    #     return Response(product_serializer.data, status=status.HTTP_201_CREATED)
+    # return Response(product_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        # Get the category ID from the request data
+        category_id = request.data.get('category') 
+        print(category_id)
+
+        if not category_id:
+            return Response({"error": "Category is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            category = Category.objects.get(id=category_id)
+        except Category.DoesNotExist:
+            return Response({"error": "Category not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        product_data = {
+            'name': request.data.get('title'),
+            'price': request.data.get('price'),
+            'category': category_id,  # Assign the retrieved category instance
+            'description': request.data.get('description'),
+            'stock_quantity': request.data.get('stock')
+        }
+        for key,val in product_data.items():
+            print(key,val)
+            if isinstance(val,dict):
+                print(val)
+            
+
+        product_serializer = ProductSerializer(data=product_data)
+        print(product_serializer)
+        if product_serializer.is_valid():
+            print("this is after validation")
+            product = product_serializer.save()
+            print(product)
+            images = request.FILES.getlist('images')
+            for image in images:
+                ProductImage.objects.create(product=product, image=image)
+            return Response(product_serializer.data, status=status.HTTP_201_CREATED)
+        return Response(product_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

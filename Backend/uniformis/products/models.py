@@ -23,13 +23,26 @@ class Product(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
-    product_img = ArrayField(models.TextField())
+    
 
     def average_rating(self):
         return self.reviews.aggregate(models.Avg('rating'))['rating__avg'] or 0
 
     class Meta:
         db_table = 'product'
+    
+    def __str__(self):
+        return self.name
+    
+class ProductImage(models.Model):
+    product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='products/')
+
+    class Meta:
+        db_table = 'product_image'
+
+    def __str__(self):
+        return f'{self.product.name} Image'
 
 class ProductVariant(models.Model):
     product = models.ForeignKey(Product,related_name='variants', on_delete=models.CASCADE)

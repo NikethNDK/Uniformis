@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { clearAuthData, setAuthData } from "../../redux/auth/authSlice";
+import { clearAuthData, setAuthData } from "../../../redux/auth/authSlice";
 import { useNavigate } from "react-router-dom";
-import adminAxiosInstance from "../../adminaxiosconfig";
+import adminAxiosInstance from "../../../adminaxiosconfig";
 import "./AdminDashboard.css";
 
 const AdminDashboard = () => {

@@ -1,6 +1,5 @@
-
 from rest_framework import serializers
-from .models import Category, Product, ProductVariant, Review, Offer
+from .models import Category, Product, ProductVariant, Review, Offer,ProductImage
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -14,7 +13,7 @@ class ProductVariantSerializer(serializers.ModelSerializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     user_name = serializers.CharField(source='user.username', read_only=True)
-    
+
     class Meta:
         model = Review
         fields = ['id', 'user_name', 'rating', 'comment', 'created_at']
@@ -25,22 +24,26 @@ class OfferSerializer(serializers.ModelSerializer):
         model = Offer
         fields = ['id', 'discount_percentage']
 
+class ProductImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductImage
+        fields = ['id', 'image']
+
 class ProductSerializer(serializers.ModelSerializer):
-    category_name = serializers.CharField(source='category.name', read_only=True)
-    average_rating = serializers.FloatField(read_only=True)
-    
+    images = ProductImageSerializer(many=True, read_only=True)
+
     class Meta:
         model = Product
         fields = [
-            'id', 'category', 'category_name', 'name', 'description',
-            'price', 'stock_quantity', 'is_active', 'product_img',
-            'average_rating'
+            'category', 'name', 'description',
+            'price', 'stock_quantity', 'images'
         ]
+        
 
 class ProductDetailSerializer(ProductSerializer):
     variants = ProductVariantSerializer(many=True, read_only=True)
     reviews = ReviewSerializer(many=True, read_only=True)
     offer = OfferSerializer(read_only=True)
-    
+
     class Meta(ProductSerializer.Meta):
         fields = ProductSerializer.Meta.fields + ['variants', 'reviews', 'offer']
