@@ -12,9 +12,10 @@ function Dashboard() {
 
   useEffect(() => {
     // Fetch the data from backend API
-    axios.get('/api/dashboard')
+    axios.get('/api/admin/dashboard')
       .then(response => {
         setData(response.data);
+        console.log(data)
       })
       .catch(error => {
         console.error('There was an error fetching the data!', error);

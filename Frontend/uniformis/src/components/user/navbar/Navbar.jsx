@@ -2,10 +2,10 @@ import React, { useState,useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { Bell, ShoppingCart, Heart, User, LogOut } from 'lucide-react';
-import { clearAuthData } from '../../redux/auth/authSlice';
-import logo from '../../assets/logo.png';
+import { clearAuthData } from '../../../redux/auth/authSlice';
+import logo from '../../../assets/logo.png';
 import './Navbar.css';
-import { fetchUserProfile } from '../../redux/profile/profileSlice';
+import { fetchUserProfile } from '../../../redux/profile/profileSlice';
 const Navbar = () => {
   const user = useSelector((state) => state.auth.user);
   const { data: profile } = useSelector((state) => state.profile);

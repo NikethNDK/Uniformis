@@ -66,14 +66,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 @api_view(['POST'])
 def add_product(request):
-    # product_serializer = ProductSerializer(data=request.data)
-    # if product_serializer.is_valid():
-    #     product = product_serializer.save()
-    #     images = request.FILES.getlist('images')
-    #     for image in images:
-    #         ProductImage.objects.create(product=product, image=image)
-    #     return Response(product_serializer.data, status=status.HTTP_201_CREATED)
-    # return Response(product_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     try:
         # Get the category ID from the request data
         category_id = request.data.get('category') 
@@ -82,10 +74,10 @@ def add_product(request):
         if not category_id:
             return Response({"error": "Category is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            category = Category.objects.get(id=category_id)
-        except Category.DoesNotExist:
-            return Response({"error": "Category not found"}, status=status.HTTP_404_NOT_FOUND)
+        # try:
+        #     category = Category.objects.get(id=category_id)
+        # except Category.DoesNotExist:
+        #     return Response({"error": "Category not found"}, status=status.HTTP_404_NOT_FOUND)
 
         product_data = {
             'name': request.data.get('title'),
@@ -94,12 +86,7 @@ def add_product(request):
             'description': request.data.get('description'),
             'stock_quantity': request.data.get('stock')
         }
-        for key,val in product_data.items():
-            print(key,val)
-            if isinstance(val,dict):
-                print(val)
-            
-
+       
         product_serializer = ProductSerializer(data=product_data)
         print(product_serializer)
         if product_serializer.is_valid():

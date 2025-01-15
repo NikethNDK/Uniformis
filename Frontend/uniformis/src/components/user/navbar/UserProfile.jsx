@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { clearAuthData } from '../../redux/auth/authSlice';
-import { fetchUserProfile, updateUserProfile } from '../../redux/profile/profileSlice';
+import { clearAuthData } from '../../../redux/auth/authSlice';
+import { fetchUserProfile, updateUserProfile } from '../../../redux/profile/profileSlice';
 import './UserProfile.css';
 
 function UserProfile() {
