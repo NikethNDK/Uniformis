@@ -140,7 +140,7 @@ const AddProduct = () => {
             <button type="submit" className="btn btn-primary w-100 mt-2">
               Add Product
             </button>
-            <Link to="/products">
+            <Link to="/admin/products">
               <Button variant="danger" className="w-100 mt-2">
                 Cancel
               </Button>

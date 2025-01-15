@@ -19,7 +19,7 @@ const AdminLogin = () => {
             dispatch(setAuthData(response.data));
             navigate('/admin/dashboard');
         } catch (error) {
-            console.error('Admin login failed:', error)
+            console.error('Admin login failed:', error) 
         }
     };
 

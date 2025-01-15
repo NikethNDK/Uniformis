@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
-import axiosInstance from '../../axiosconfig';
-import { setAuthData } from '../../redux/auth/authSlice'; 
+import axiosInstance from '../../../axiosconfig';
+import { setAuthData } from '../../../redux/auth/authSlice'; 
 import './Signup.css';
 
 const Signup = () => {

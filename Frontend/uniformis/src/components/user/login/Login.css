@@ -32,9 +32,9 @@
   }
   
   .logo-img {
-    /* max-width: 100%;  */
-    width:770px;
-    /* height: auto;      */
+    max-width: 100%; 
+    width:8rem;
+    height: auto;     
   }
   
   .form-section {

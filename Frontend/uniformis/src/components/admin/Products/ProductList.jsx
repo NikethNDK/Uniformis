@@ -28,7 +28,7 @@ const ProductList = () => {
   return (
     <div className="dashboard-container">
       <Sidebar />
-      <div className="p-6 content">
+      <div className="p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Products</h1>
           <div className="flex gap-4">
@@ -41,7 +41,7 @@ const ProductList = () => {
             />
            
               <Button className="w-4 h-4 mr-2 mt-2"> <Link
-              to={"/products/add"}
+              to="/admin/products/add"
               className="bg-blue-600 text-white d-flex align-items-center btn-style"
             > ADD NEW PRODUCT</Link></Button>
             

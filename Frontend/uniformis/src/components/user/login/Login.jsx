@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useDispatch,useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
-import axiosInstance from '../../axiosconfig';
-import { setAuthData } from '../../redux/auth/authSlice';
+import axiosInstance from '../../../axiosconfig';
+import { setAuthData } from '../../../redux/auth/authSlice';
 import './Login.css';
-import logo from '../../assets/logo.png'; 
-import googleLogo from '../../assets/google-logo.png'; 
+import logo from '../../../assets/logo.png'; 
+import googleLogo from '../../../assets/google-logo.png'; 
 
 const Login = () => {
     const [email, setEmail] = useState('');

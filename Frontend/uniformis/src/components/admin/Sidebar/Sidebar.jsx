@@ -27,7 +27,7 @@ function Sidebar() {
       section: "Main",
       items: [
         { path: "/admin/dashboard", icon: FaChartBar, label: "Dashboard" },
-        { path: "/products", icon: FaBox, label: "Products" },
+        { path: "/admin/products", icon: FaBox, label: "Products" },
         { path: "/orders", icon: FaShoppingCart, label: "Orders" },
         { path: "/customers", icon: FaUser, label: "Customers" },
         { path: "/size", icon: FaRuler, label: "Size" },

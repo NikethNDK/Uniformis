@@ -4,18 +4,7 @@ body {
   padding-top: 0;
 }
 
-.dashboard-container {
-  display: flex;
-  min-height: 100vh; /* Ensure full height of the viewport */
-}
 
-.content {
-  margin-left: 280px; /* Push content to the right of the fixed sidebar (match sidebar width) */
-  padding: 20px;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
 
 .top-bar {
   display: flex;

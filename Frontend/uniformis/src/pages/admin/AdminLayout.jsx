@@ -1,12 +1,14 @@
 import React from 'react';
-import Sidebar from './Sidebar'; // Your existing sidebar component
+import Sidebar from '../../components/admin/Sidebar/Sidebar';
+import './AdminLayout'
+import { Outlet } from 'react-router-dom';
 
-const AdminLayout = ({ children }) => {
+const AdminLayout = () => {
   return (
     <div className="dashboard-container">
-      <Sidebar /> {/* This will be fixed on the left */}
+      <Sidebar /> 
       <main className="content">
-        {children}
+        <Outlet />
       </main>
     </div>
   );

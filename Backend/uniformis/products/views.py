@@ -90,9 +90,9 @@ def add_product(request):
         product_serializer = ProductSerializer(data=product_data)
         print(product_serializer)
         if product_serializer.is_valid():
-            print("this is after validation")
+            # print("this is after validation")
             product = product_serializer.save()
-            print(product)
+            # print(product)
             images = request.FILES.getlist('images')
             for image in images:
                 ProductImage.objects.create(product=product, image=image)

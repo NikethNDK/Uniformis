@@ -3,6 +3,8 @@ import { FaSearch, FaUserAlt, FaBox, FaShoppingCart, FaSignOutAlt } from 'react-
 import Sidebar from '../Sidebar/Sidebar';
 import axios from 'axios';
 import './AdminDashboard.css'
+
+
 function Dashboard() {
   const [data, setData] = useState({
     totalUsers: 0,
@@ -23,9 +25,9 @@ function Dashboard() {
   }, []);
 
   return (
-    <div className="dashboard-container">
-      <Sidebar />
-      <div className="content">
+   
+     
+      <div>
         <div className="top-bar">
           <div className="search-bar">
             <input type="text" placeholder="Search..." />
@@ -90,7 +92,7 @@ function Dashboard() {
           </table>
         </div>
       </div>
-    </div>
+   
   );
 }
 
