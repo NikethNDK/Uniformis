@@ -56,7 +56,7 @@ function Sidebar() {
   return (
     <div className="sidebar">
       <div className="logo">
-        <img src={logo} alt="Uniformis Shoppe" className="logo-img" />
+        <img src={logo} alt="Uniformis Shoppe" className="logo-img-side" />
       </div>
       <nav>
         {navigationItems.map((section, index) => (

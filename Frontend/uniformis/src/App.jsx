@@ -1,3 +1,5 @@
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom"
 import Login from "./components/user/login/Login"
 import Signup from "./components/user/signup/Signup.jsx"
@@ -16,6 +18,8 @@ import AdminEditUser from "./components/admin/AdminEditUser.jsx"
 
 function App() {
   return (
+    <>
+    <ToastContainer />
     <BrowserRouter>
       <Routes>
         {/* Admin routes  */}
@@ -39,6 +43,7 @@ function App() {
         <Route path="/defaultadmin" element={<AdminRedirect />} />
       </Routes>
     </BrowserRouter>
+    </>
   );
 }
 

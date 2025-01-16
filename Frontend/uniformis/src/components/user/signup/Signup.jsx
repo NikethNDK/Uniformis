@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
-import axiosInstance from '../../../axiosconfig';
+import {authApi} from '../../../axiosconfig';
 import { setAuthData } from '../../../redux/auth/authSlice'; 
 import './Signup.css';
 
@@ -78,7 +78,7 @@ const Signup = () => {
     e.preventDefault();
     if (validate()) {
       try {
-        const response = await axiosInstance.post('/signup/', {
+        const response = await authApi.post('/signup/', {
           first_name: formData.firstName,
           last_name: formData.lastName,
           username: formData.username,
@@ -86,17 +86,29 @@ const Signup = () => {
           email: formData.email,
           password: formData.password,
         });
+
+        const { token, refresh_token } = response.data;
+        localStorage.setItem('token', token);
+        localStorage.setItem('refresh_token', refresh_token);
+        
         dispatch(setAuthData(response.data));
         navigate('/login');
       } 
       catch (error) {
         if (error.response) {
           console.error('Signup failed:', error.response.data);
+          setErrors(prev => ({
+            ...prev,
+            submit: error.response.data.detail || 'Signup failed. Please try again.'
+          }));
         } else {
           console.error('Signup failed:', error.message);
+          setErrors(prev => ({
+            ...prev,
+            submit: 'Network error. Please try again.'
+          }));
         }
       }
-
     }
   };
 

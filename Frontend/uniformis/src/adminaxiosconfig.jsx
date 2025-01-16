@@ -1,13 +1,13 @@
 import axios from 'axios';
 
-const BASE_URL='http://localhost:8000/api';
+const BASE_URL='http://localhost:8000/';
 
 const adminAxiosInstance = axios.create({
   baseURL: BASE_URL,
 });
 
 const productApi = axios.create({
-  baseURL: `${BASE_URL}/products`,
+  baseURL: `${BASE_URL}/api/products`,
   headers: {
     'Content-Type': 'application/json',
   },

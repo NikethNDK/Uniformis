@@ -1,144 +1,134 @@
-import React, { useState,useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate, Link } from 'react-router-dom';
-import { Bell, ShoppingCart, Heart, User, LogOut } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, Bell, ShoppingCart, Heart, User, Menu, X,LogOut } from 'lucide-react';
+import logo from '../../../assets/logo.png'
 import { clearAuthData } from '../../../redux/auth/authSlice';
-import logo from '../../../assets/logo.png';
-import './Navbar.css';
-import { fetchUserProfile } from '../../../redux/profile/profileSlice';
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+
 const Navbar = () => {
-  const user = useSelector((state) => state.auth.user);
-  const { data: profile } = useSelector((state) => state.profile);
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const dispatch=useDispatch()
+  const navigate=useNavigate()
 
-  useEffect(() => {
-    dispatch(fetchUserProfile());
-  }, [dispatch]);
-
+  const menuItems = ['Home', 'About', 'School uniform', 'Hospital Uniform', 'Industrial Uniform', 'Security', 'Cadet'];
   const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    dispatch(clearAuthData());
-    navigate('/login');
-    setShowProfileMenu(false);
-  };
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    console.log('Searching for:', searchQuery);
-  };
-
-  const ProfileMenu = () => (
-    <div className="profile-menu">
-      <Link to="/user-profile" className="profile-menu-item">
-        <User size={18} />
-        <span>Profile</span>
-      </Link>
-      <button onClick={handleLogout} className="profile-menu-item logout-btn">
-        <LogOut size={18} />
-        <span>Logout</span>
-      </button>
-    </div>
-  );
-
+    dispatch(clearAuthData())
+    navigate("/login")
+  }
   return (
-    <div className="navbar-wrapper fixed-top">
-      {/* Main Navbar */}
-      <nav className="navbar navbar-expand-lg navbar-light bg-white">
-        <div className="container">
-          {/* Logo */}
-          <Link to="/" className="navbar-brand">
-            <img src={logo} alt="Uniformis Shoppe" className="logo-img" />
-          </Link>
+    <nav className="w-full bg-white shadow-sm">
+      {/* Top bar */}
+      <div className="max-w-7xl mx-auto px-4 py-3">
+        <div className="flex items-center justify-between">
+          {/* Logo and hamburger */}
+          <div className="flex items-center gap-4">
+            <button
+              className="lg:hidden"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              {isMenuOpen ? (
+                <X className="w-6 h-6 text-gray-600" />
+              ) : (
+                <Menu className="w-6 h-6 text-gray-600" />
+              )}
+            </button>
+            {/* Logo placeholder */}
+            <div className="w-32 lg:w-40">
+            <img src={logo} alt="Company Logo" height="auto"/>
+            </div>
+          </div>
 
-          {/* Search Bar */}
-          <form className="search-form d-flex" onSubmit={handleSearch}>
-            <div className="input-group">
+          {/* Search bar - desktop */}
+          <div className="hidden md:flex flex-1 max-w-xl mx-8">
+            <div className="relative w-full">
               <input
                 type="text"
-                className="form-control"
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search"
+                className="w-full px-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:border-gray-400"
               />
-             <button className="btn btn-dark" type="submit">
+              <button className="absolute right-3 top-1/2 -translate-y-1/2 bg-[#222222] text-white px-6 py-1 rounded-full">
                 Search
               </button>
             </div>
-          </form>
+          </div>
 
-          {/* Right Icons */}
-          <div className="nav-icons">
-            <Link to="/notifications" className="nav-icon">
-              <Bell size={24} />
-            </Link>
-            <Link to="/cart" className="nav-icon">
-              <ShoppingCart size={24} />
-            </Link>
-            <Link to="/wishlist" className="nav-icon">
-              <Heart size={24} />
-            </Link>
-            
-            {user ? (
-              <div className="profile-section" onClick={() => setShowProfileMenu(!showProfileMenu)}>
-                <div className="profile-trigger">
-                  {profile?.profile_picture ? (
-                    <img
-                      src={profile.profile_picture}
-                      alt="Profile"
-                      className="profile-img"
-                    />
-                  ) : (
-                    <div className="profile-initial">
-                      {user?.first_name?.[0]}
-                    </div>
-                  )}
-                </div>
-                {showProfileMenu && <ProfileMenu />}
-              </div>
-            ) : (
-              <Link to="/login" className="btn btn-login">
-                Login
-              </Link>
-            )}
+          {/* Icons */}
+          <div className="flex items-center gap-4 lg:gap-6">
+            <button
+              className="md:hidden"
+              onClick={() => setIsSearchOpen(!isSearchOpen)}
+            >
+              <Search className="w-6 h-6 text-gray-600" />
+            </button>
+            <Bell className="hidden sm:block w-6 h-6 text-gray-600 cursor-pointer hover:text-gray-800" />
+            <ShoppingCart className="w-6 h-6 text-gray-600 cursor-pointer hover:text-gray-800" />
+            <Heart className="hidden sm:block w-6 h-6 text-gray-600 cursor-pointer hover:text-gray-800" />
+            <User className="w-6 h-6 text-gray-600 cursor-pointer hover:text-gray-800" />
+            <button 
+              onClick={handleLogout} 
+              className="text-gray-700 hover:text-gray-900"
+            >
+              <LogOut size={20} />
+            </button>
           </div>
         </div>
-      </nav>
 
-      {/* Categories Navbar */}
-      <nav className="navbar navbar-expand-lg navbar-light bg-light categories-nav">
-        <div className="container">
-          <div className="collapse navbar-collapse" id="navbarContent">
-            <ul className="navbar-nav mx-auto">
-              <li className="nav-item">
-                <Link to="/" className="nav-link">Home</Link>
+        {/* Mobile search */}
+        {isSearchOpen && (
+          <div className="mt-3 md:hidden">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search"
+                className="w-full px-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:border-gray-400"
+              />
+              <button className="absolute right-3 top-1/2 -translate-y-1/2 bg-[#222222] text-white px-6 py-1 rounded-full">
+                Search
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Bottom menu - desktop */}
+      <div className="hidden lg:block border-t border-gray-100">
+        <div className="max-w-7xl mx-auto px-4">
+          <ul className="flex flex-wrap space-x-8">
+            {menuItems.map((item) => (
+              <li key={item}>
+                <a
+                  href="#"
+                  className="inline-block py-4 text-gray-600 hover:text-gray-900 whitespace-nowrap"
+                >
+                  {item}
+                </a>
               </li>
-              <li className="nav-item">
-                <Link to="/about" className="nav-link">About</Link>
-              </li>
-              <li className="nav-item">
-                <Link to="/school-uniform" className="nav-link">School uniform</Link>
-              </li>
-              <li className="nav-item">
-                <Link to="/hospital-uniform" className="nav-link">Hospital Uniform</Link>
-              </li>
-              <li className="nav-item">
-                <Link to="/industrial-uniform" className="nav-link">Industrial Uniform</Link>
-              </li>
-              <li className="nav-item">
-                <Link to="/security" className="nav-link">Security</Link>
-              </li>
-              {/* <li className="nav-item">
-                <Link to="/cadet" className="nav-link">Cadet</Link>
-              </li> */}
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      {/* Mobile menu */}
+      {isMenuOpen && (
+        <div className="lg:hidden border-t border-gray-100">
+          <div className="px-4 py-2">
+            <ul className="space-y-2">
+              {menuItems.map((item) => (
+                <li key={item}>
+                  <a
+                    href="#"
+                    className="block py-2 px-4 text-gray-600 hover:bg-gray-50 rounded-lg"
+                  >
+                    {item}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
-      </nav>
-    </div>
+      )}
+    </nav>
   );
 };
 

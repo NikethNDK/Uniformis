@@ -17,7 +17,7 @@ from rest_framework.permissions import IsAdminUser
 User = get_user_model()
 
 class SignupView(APIView):
-    def post(self,request):
+    def post(self, request):
         serializer = UserSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -26,7 +26,8 @@ class SignupView(APIView):
             refresh = RefreshToken.for_user(user)
             return Response({
                 'user': UserSerializer(user).data,
-                'token': str(refresh.access_token)
+                'token': str(refresh.access_token),  # Access token
+                'refresh_token': str(refresh)         # Refresh token
             }, status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -37,7 +38,8 @@ class LoginView(APIView):
         email = request.data.get('email')
         password = request.data.get('password')
 
-        # print("Request Data:", request.data)
+        print("email",email)
+        print("Request Data:", request.data)
 
         if not email or not password:
             return Response({'error': 'Email and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -62,7 +64,8 @@ class LoginView(APIView):
                 'username': user.username,
                 'email': user.email,
             },
-            'token': str(refresh.access_token)
+            'token': str(refresh.access_token),
+            'refresh_token': str(refresh)
         }, status=status.HTTP_200_OK)
 
         
