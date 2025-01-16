@@ -3,6 +3,7 @@ from .views import *
 
 
 urlpatterns = [
+    path('admin/csrf/', get_csrf_token),
     path('signup/', SignupView.as_view(), name='signup'),
     path('login/', LoginView.as_view(), name='login'),
     path('admin/token/', AdminTokenObtainView.as_view(), name='admin_token'),

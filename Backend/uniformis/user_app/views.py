@@ -13,6 +13,8 @@ from django.contrib.auth import authenticate
 from .serializers import UserProfileSerializer
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAdminUser
+from django.middleware.csrf import get_token
+from django.http import JsonResponse
 
 User = get_user_model()
 
@@ -172,3 +174,6 @@ def admin_update_user(request, user_id):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     except User.DoesNotExist:
         return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+def get_csrf_token(request):
+    return JsonResponse({'csrfToken': get_token(request)})
