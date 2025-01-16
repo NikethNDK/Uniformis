@@ -64,10 +64,13 @@ const ProductList = () => {
             />
             <Search className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
           </div>
+          
+          <Link to="/admin/products/add">
           <button className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
             <Plus className="w-5 h-5" />
             ADD NEW PRODUCT
           </button>
+          </Link>
         </div>
       </div>
 

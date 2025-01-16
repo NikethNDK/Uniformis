@@ -55,8 +55,13 @@ const addAuthToken = (config) => {
   return config;
 };
 
+const clearAuthTokens = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('refresh_token');
+};
+
 adminAxiosInstance.interceptors.request.use(addAuthToken, (error) => Promise.reject(error));
 productApi.interceptors.request.use(addAuthToken, (error) => Promise.reject(error));
 
 export default adminAxiosInstance;
-export { productApi };
+export { productApi,clearAuthTokens };

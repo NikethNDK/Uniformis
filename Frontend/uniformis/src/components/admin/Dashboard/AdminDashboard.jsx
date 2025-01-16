@@ -4,9 +4,9 @@ import { Bar, BarChart, Tooltip, XAxis, YAxis, CartesianGrid, ResponsiveContaine
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'; // Import styles
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { useDispatch } from 'react-redux';
 import adminAxiosInstance from '../../../adminaxiosconfig'
-
+import { clearAuthData } from '../../../redux/auth/authSlice';
 // Custom tooltip component
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -22,6 +22,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const dispatch=useDispatch()
   const [searchTerm, setSearchTerm] = useState('');
   const [orders, setOrders] = useState([
     {
@@ -33,6 +34,7 @@ const Dashboard = () => {
       status: 'Completed'
     }
   ]);
+
 
   const chartdata = [
     { name: 'Jan', value: 4000 },
@@ -61,16 +63,11 @@ const Dashboard = () => {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await axiosInstance.post('/api/auth/logout');
-      localStorage.removeItem('adminToken');
-      navigate('/login');
-      toast.success("Logged out successfully");
-    } catch (error) {
-      toast.error("Logout failed. Please try again.");
-    }
-  };
+  
+    const handleLogout = () => {
+        dispatch(clearAuthData())
+        navigate("/admin/login")
+      }
 
   // Filter orders based on search term
   const filteredOrders = orders.filter(order => 
