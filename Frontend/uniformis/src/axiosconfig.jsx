@@ -136,7 +136,7 @@ const defaultConfig = {
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000, // 10 second timeout
+  timeout: 30000, // 10 second timeout
 };
 
 // Create an Axios instance for authentication (no default headers)

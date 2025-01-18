@@ -8,7 +8,7 @@ import { productApi } from "../../../adminaxiosconfig";
 const ProductList = () => {
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isFetched, setIsFetched] = useState(false);
+  // const [isFetched, setIsFetched] = useState(false);
 
   useEffect(() => {
     fetchProducts();
@@ -18,6 +18,7 @@ const ProductList = () => {
     try {
       const response = await productApi.get("/items/");
       setProducts(response.data);
+      console.log(products)
       // if (!isFetched) {
       //   toast.success("Products loaded successfully!");
       //   setIsFetched(true);
@@ -27,13 +28,25 @@ const ProductList = () => {
       console.error("Error fetching products:", error);
     }
   };
-
+  console.log(products)
   // Filter products based on search term
   const filteredProducts = products.filter(product => 
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.price.toString().includes(searchTerm)
   );
+
+  const handleDelete = async (productId) => {
+    try {
+      // Using the ViewSet's destroy method which now performs soft delete
+      await productApi.delete(`/items/${productId}/`);
+      toast.success('Product deleted successfully');
+      // Refresh the product list
+      fetchProducts();
+    } catch (error) {
+      toast.error('Error deleting product');
+    }
+  };
 
   return (
     <div className="ml-64 px-8 py-6">
@@ -84,13 +97,14 @@ const ProductList = () => {
               <th className="px-6 py-4">Category</th>
               <th className="px-6 py-4">Price</th>
               <th className="px-6 py-4">Stock</th>
-              <th className="px-6 py-4">View</th>
+              {/* <th className="px-6 py-4">View</th> */}
               <th className="px-6 py-4">Size</th>
               <th className="px-6 py-4">Action</th>
             </tr>
           </thead>
           <tbody>
             {filteredProducts.map((product) => (
+              
               <tr key={product.id} className="border-b hover:bg-gray-50">
                 <td className="px-6 py-4">
                   <img
@@ -100,25 +114,28 @@ const ProductList = () => {
                   />
                 </td>
                 <td className="px-6 py-4">{product.name}</td>
-                <td className="px-6 py-4">{product.category}</td>
+                <td className="px-6 py-4">{product.category.name}</td>
                 <td className="px-6 py-4">₹{product.price}</td>
                 <td className="px-6 py-4">{product.stock_quantity}</td>
-                <td className="px-6 py-4">
+                
+                {/* <td className="px-6 py-4">
                   <button className="px-4 py-1 text-sm rounded bg-green-500 text-white hover:bg-green-600">
                     review
                   </button>
-                </td>
-                <td className="px-6 py-4">
-                  <button className="px-4 py-1 text-sm rounded bg-yellow-500 text-white hover:bg-yellow-600">
-                    Size
-                  </button>
-                </td>
+                </td> */}
+                <td>
+                {product.sizes.map((size) => (
+                    <span key={size.id}>{size.name}</span>
+                ))}
+            </td>
                 <td className="px-6 py-4">
                   <div className="flex gap-2">
+                  <Link to="/admin/products/edit">
                     <button className="p-1 rounded hover:bg-gray-100">
                       <Pencil className="w-4 h-4 text-gray-600" />
                     </button>
-                    <button className="p-1 rounded hover:bg-gray-100">
+                    </Link>
+                    <button onClick={() => handleDelete(product.id)} className="p-1 rounded hover:bg-gray-100">
                       <Trash2 className="w-4 h-4 text-red-500" />
                     </button>
                   </div>

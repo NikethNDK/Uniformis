@@ -4,8 +4,11 @@ import { useNavigate, Link } from 'react-router-dom';
 import {authApi} from '../../../axiosconfig';
 import { setAuthData } from '../../../redux/auth/authSlice'; 
 import './Signup.css';
+import OTPVerificationModal from '../OTPVerificationModal/OTPVerificationModal';
 
 const Signup = () => {
+  const [showOTPModal, setShowOTPModal] = useState(false);
+  const [userId, setUserId] = useState(null);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -86,14 +89,10 @@ const Signup = () => {
           email: formData.email,
           password: formData.password,
         });
-
-        const { token, refresh_token } = response.data;
-        localStorage.setItem('token', token);
-        localStorage.setItem('refresh_token', refresh_token);
-        
-        dispatch(setAuthData(response.data));
-        navigate('/login');
-      } 
+  
+        setShowOTPModal(true);
+        setUserId(response.data.user_id);
+      }
       catch (error) {
         if (error.response) {
           console.error('Signup failed:', error.response.data);
@@ -214,6 +213,21 @@ const Signup = () => {
           <p>Already have an account? <Link to="/login">Login here</Link></p>
         </div>
       </div>
+      {showOTPModal && (
+  <OTPVerificationModal
+    userId={userId}
+    onSuccess={(data) => {
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('refresh_token', data.refresh_token);
+      dispatch(setAuthData(data));
+      navigate('/login');
+    }}
+    onCancel={() => {
+      setShowOTPModal(false);
+      navigate('/login');
+    }}
+  />
+)}
     </div>
   );
 };

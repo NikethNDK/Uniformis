@@ -13,8 +13,9 @@ import UserProfile from "./components/user/navbar/UserProfile.jsx"
 import CreateUserPage from "./components/admin/CreateUserPage.jsx"
 import AdminRedirect from "./components/defaultadmin/defaultadmin.jsx"
 import AdminEditUser from "./components/admin/AdminEditUser.jsx"
-
-
+import SizeManagement from "./components/admin/Products/Size.jsx";
+import CategoryManagement from "./components/admin/Products/Category.jsx";
+import EditProduct from "./components/admin/Products/EditProduct.jsx";
 
 function App() {
   return (
@@ -27,6 +28,9 @@ function App() {
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="products" element={<ProductList />} />
           <Route path="products/add" element={<AddProduct />} />
+          <Route path="products/edit" element={<EditProduct />} />
+          <Route path="size" element={<SizeManagement/>}/>
+          <Route path='category' element={<CategoryManagement/>}/>
         </Route>
         <Route path="/admin/editUser" element={<AdminEditUser />} />
         

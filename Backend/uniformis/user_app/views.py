@@ -15,8 +15,28 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAdminUser
 from django.middleware.csrf import get_token
 from django.http import JsonResponse
+from .utils import generate_otp, send_otp_email
+from .models import OTP
+from django.utils import timezone
+from datetime import timedelta
 
 User = get_user_model()
+
+# class SignupView(APIView):
+#     def post(self, request):
+#         serializer = UserSerializer(data=request.data)
+
+#         if serializer.is_valid():
+#             user = serializer.save()
+#             UserProfile.objects.create(user=user)
+#             refresh = RefreshToken.for_user(user)
+#             return Response({
+#                 'user': UserSerializer(user).data,
+#                 'token': str(refresh.access_token),  # Access token
+#                 'refresh_token': str(refresh)         # Refresh token
+#             }, status=status.HTTP_201_CREATED)
+        
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class SignupView(APIView):
     def post(self, request):
@@ -24,15 +44,104 @@ class SignupView(APIView):
 
         if serializer.is_valid():
             user = serializer.save()
+            user.is_active = False  # User starts inactive
+            user.save()
+            
             UserProfile.objects.create(user=user)
-            refresh = RefreshToken.for_user(user)
+            
+            # Generate and send OTP
+            otp_code = generate_otp()
+            expires_at = timezone.now() + timedelta(minutes=2)
+            OTP.objects.create(
+                user=user,
+                otp_code=otp_code,
+                expires_at=expires_at
+            )
+            
+            send_otp_email(user, otp_code)
+            
             return Response({
-                'user': UserSerializer(user).data,
-                'token': str(refresh.access_token),  # Access token
-                'refresh_token': str(refresh)         # Refresh token
+                'user_id': user.id,
+                'message': 'Please verify your email with the OTP sent.'
             }, status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class VerifyOTPView(APIView):
+    def post(self, request):
+        user_id = request.data.get('user_id')
+        otp_code = request.data.get('otp_code')
+
+        try:
+            user = User.objects.get(id=user_id)
+            otp = OTP.objects.filter(
+                user=user,
+                is_verified=False
+            ).latest('created_at')
+
+            if otp.is_expired():
+                return Response({
+                    'error': 'OTP has expired'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            if otp.otp_code != otp_code:
+                return Response({
+                    'error': 'Invalid OTP'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Verify user
+            user.is_active = True
+            user.is_email_verified = True
+            user.save()
+
+            otp.is_verified = True
+            otp.save()
+
+            # Generate tokens
+            refresh = RefreshToken.for_user(user)
+            
+            return Response({
+                'user': UserSerializer(user).data,
+                'token': str(refresh.access_token),
+                'refresh_token': str(refresh)
+            }, status=status.HTTP_200_OK)
+
+        except User.DoesNotExist:
+            return Response({
+                'error': 'User not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+        except OTP.DoesNotExist:
+            return Response({
+                'error': 'No OTP found'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+class ResendOTPView(APIView):
+    def post(self, request):
+        user_id = request.data.get('user_id')
+        
+        try:
+            user = User.objects.get(id=user_id)
+            
+            # Generate new OTP
+            otp_code = generate_otp()
+            expires_at = timezone.now() + timedelta(minutes=2)
+            OTP.objects.create(
+                user=user,
+                otp_code=otp_code,
+                expires_at=expires_at
+            )
+            
+            send_otp_email(user, otp_code)
+            
+            return Response({
+                'message': 'New OTP sent successfully'
+            }, status=status.HTTP_200_OK)
+            
+        except User.DoesNotExist:
+            return Response({
+                'error': 'User not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+        
 
 class LoginView(APIView):
     def post(self, request):

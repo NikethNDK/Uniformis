@@ -30,8 +30,8 @@ function Sidebar() {
         { path: "/admin/products", icon: FaBox, label: "Products" },
         { path: "/orders", icon: FaShoppingCart, label: "Orders" },
         { path: "/customers", icon: FaUser, label: "Customers" },
-        { path: "/size", icon: FaRuler, label: "Size" },
-        { path: "/category", icon: FaThLarge, label: "Category" }
+        { path: "/admin/size", icon: FaRuler, label: "Size" },
+        { path: "/admin/category", icon: FaThLarge, label: "Category" }
       ]
     },
     {

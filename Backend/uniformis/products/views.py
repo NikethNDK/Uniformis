@@ -1,11 +1,10 @@
-# views.py
 from rest_framework import viewsets, permissions, status
-from rest_framework.decorators import action,api_view
+from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from django.db.models import Count, Avg
-from .models import Category, Product, ProductVariant, Review, Offer,ProductImage
+from .models import Category, Product, Review, Offer, ProductImage, Size
 from .serializers import (
-    CategorySerializer, ProductSerializer, ProductVariantSerializer,
+    CategorySerializer, ProductSerializer, SizeSerializer,
     ReviewSerializer, ProductDetailSerializer
 )
 
@@ -14,8 +13,13 @@ class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     permission_classes = [permissions.IsAdminUser]
 
+class SizeViewSet(viewsets.ModelViewSet):
+    queryset = Size.objects.all()
+    serializer_class = SizeSerializer
+    permission_classes = [permissions.IsAdminUser]
+
 class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.all()
+    queryset = Product.objects.filter(is_active=True)
     serializer_class = ProductSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
@@ -26,19 +30,17 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET'])
     def best_sellers(self, request):
-        # Get best selling products based on order count
         best_sellers = Product.objects.annotate(
             order_count=Count('orderitem')
-        ).order_by('-order_count')[:8]  # 2 rows of 4 products
+        ).order_by('-order_count')[:8]
         serializer = self.get_serializer(best_sellers, many=True)
         return Response(serializer.data)
 
     @action(detail=False, methods=['GET'])
     def offers(self, request):
-        # Get products with active offers
         products_with_offers = Product.objects.filter(
             offer__isnull=False
-        ).order_by('-offer__discount_percentage')[:8]  # 2 rows of 4 products
+        ).order_by('-offer__discount_percentage')[:8]
         serializer = self.get_serializer(products_with_offers, many=True)
         return Response(serializer.data)
 
@@ -55,6 +57,22 @@ class ProductViewSet(viewsets.ModelViewSet):
             return Response({'status': 'stock updated'})
         return Response({'error': 'stock_quantity required'}, 
                        status=status.HTTP_400_BAD_REQUEST)
+    def perform_destroy(self, instance):
+        # Override destroy to perform soft delete
+        instance.is_active = False
+        instance.save()
+
+    @action(detail=True, methods=['POST'])
+    def restore(self, request, pk=None):
+        """Restore a soft-deleted product"""
+        if not request.user.is_staff:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        
+        product = self.get_object()
+        product.is_active = True
+        product.save()
+        return Response({'status': 'product restored'})
+    
 
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
@@ -64,40 +82,98 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+# @api_view(['POST'])
+# def add_product(request):
+#     try:
+#         category_id = request.data.get('category')
+#         print(category_id)
+#         if not category_id:
+#             return Response({"error": "Category is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+#         product_data = {
+#             'name': request.data.get('title'),
+#             'price': request.data.get('price'),
+#             'category': category_id,
+#             'description': request.data.get('description'),
+#             'stock_quantity': request.data.get('stock')
+#         }
+       
+#         product_serializer = ProductSerializer(data=product_data)
+#         if product_serializer.is_valid():
+#             product = product_serializer.save()
+            
+#             # Handle sizes
+#             sizes = request.data.get('sizes', [])
+#             product.sizes.set(sizes)
+            
+#             # Handle images
+#             images = request.FILES.getlist('images')
+#             for image in images:
+#                 ProductImage.objects.create(product=product, image=image)
+            
+#             return Response(product_serializer.data, status=status.HTTP_201_CREATED)
+#         return Response(product_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+#     except Exception as e:
+#         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 @api_view(['POST'])
 def add_product(request):
     try:
-        # Get the category ID from the request data
-        category_id = request.data.get('category') 
-        print(category_id)
-
-        if not category_id:
-            return Response({"error": "Category is required"}, status=status.HTTP_400_BAD_REQUEST)
-
-        # try:
-        #     category = Category.objects.get(id=category_id)
-        # except Category.DoesNotExist:
-        #     return Response({"error": "Category not found"}, status=status.HTTP_404_NOT_FOUND)
-
+        # Prepare the product data
         product_data = {
             'name': request.data.get('title'),
             'price': request.data.get('price'),
-            'category': category_id,  # Assign the retrieved category instance
+            'category_id': request.data.get('category'),  # Changed to category_id
             'description': request.data.get('description'),
-            'stock_quantity': request.data.get('stock')
+            'stock_quantity': request.data.get('stock'),
+            'size_ids': request.data.getlist('sizes')  # Get sizes as list
         }
        
         product_serializer = ProductSerializer(data=product_data)
-        print(product_serializer)
         if product_serializer.is_valid():
-            # print("this is after validation")
+            # Save the product
             product = product_serializer.save()
-            # print(product)
+            
+            # Handle images separately
             images = request.FILES.getlist('images')
             for image in images:
                 ProductImage.objects.create(product=product, image=image)
+            
             return Response(product_serializer.data, status=status.HTTP_201_CREATED)
         return Response(product_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+@api_view(['PUT'])
+def update_product(request, pk):
+    try:
+        product = Product.objects.get(pk=pk)
+        
+        # Prepare the product data
+        product_data = {
+            'name': request.data.get('title'),
+            'price': request.data.get('price'),
+            'category_id': request.data.get('category'),
+            'description': request.data.get('description'),
+            'stock_quantity': request.data.get('stock'),
+            'size_ids': request.data.getlist('sizes')
+        }
+        
+        product_serializer = ProductSerializer(product, data=product_data, partial=True)
+        if product_serializer.is_valid():
+            product = product_serializer.save()
+            
+            # Handle images if new ones are uploaded
+            if 'images' in request.FILES:
+                images = request.FILES.getlist('images')
+                for image in images:
+                    ProductImage.objects.create(product=product, image=image)
+            
+            return Response(product_serializer.data)
+        return Response(product_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    except Product.DoesNotExist:
+        return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
