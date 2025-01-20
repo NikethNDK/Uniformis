@@ -29,17 +29,7 @@ class ProductImageSerializer(serializers.ModelSerializer):
         model = ProductImage
         fields = ['id', 'image']
 
-# class ProductSerializer(serializers.ModelSerializer):
-#     images = ProductImageSerializer(many=True, read_only=True)
-#     category = CategorySerializer()
-#     sizes = SizeSerializer(many=True, read_only=True)
 
-#     class Meta:
-#         model = Product
-#         fields = [
-#             'id', 'category', 'name', 'description',
-#             'price', 'stock_quantity', 'images', 'sizes'
-#         ]
 
 class ProductSerializer(serializers.ModelSerializer):
     images = ProductImageSerializer(many=True, read_only=True)
@@ -96,3 +86,16 @@ class ProductDetailSerializer(ProductSerializer):
     class Meta(ProductSerializer.Meta):
         fields = ProductSerializer.Meta.fields + ['reviews', 'offer']
 
+
+
+# class ProductSerializer(serializers.ModelSerializer):
+#     images = ProductImageSerializer(many=True, read_only=True)
+#     category = CategorySerializer()
+#     sizes = SizeSerializer(many=True, read_only=True)
+
+#     class Meta:
+#         model = Product
+#         fields = [
+#             'id', 'category', 'name', 'description',
+#             'price', 'stock_quantity', 'images', 'sizes'
+#         ]

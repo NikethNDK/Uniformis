@@ -16,6 +16,7 @@ import AdminEditUser from "./components/admin/AdminEditUser.jsx"
 import SizeManagement from "./components/admin/Products/Size.jsx";
 import CategoryManagement from "./components/admin/Products/Category.jsx";
 import EditProduct from "./components/admin/Products/EditProduct.jsx";
+import CustomerManagement from "./components/admin/CustomerManagement/CustomerManagement.jsx";
 
 function App() {
   return (
@@ -28,7 +29,8 @@ function App() {
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="products" element={<ProductList />} />
           <Route path="products/add" element={<AddProduct />} />
-          <Route path="products/edit" element={<EditProduct />} />
+          <Route path="products/edit/:id" element={<EditProduct />} />
+          <Route path="customerManagement" element={<CustomerManagement/>}/>
           <Route path="size" element={<SizeManagement/>}/>
           <Route path='category' element={<CategoryManagement/>}/>
         </Route>

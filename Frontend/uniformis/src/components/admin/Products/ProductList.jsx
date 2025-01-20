@@ -1,147 +1,135 @@
-import React, { useState, useEffect } from "react";
-import { Search, Plus, Pencil, Trash2 } from "lucide-react";
-import { Link } from "react-router-dom";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { productApi } from "../../../adminaxiosconfig";
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchProducts, updateProductStatus, deleteProduct } from '../../../redux/product/productSlice';
+import { Link } from 'react-router-dom';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 const ProductList = () => {
-  const [products, setProducts] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  // const [isFetched, setIsFetched] = useState(false);
-
+  const dispatch = useDispatch();
+  const { items: products, status, error } = useSelector(state => state.products);
+  
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    dispatch(fetchProducts());
+  }, [dispatch]);
 
-  const fetchProducts = async () => {
+  const handleStatusChange = async (id, isDeleted) => {
     try {
-      const response = await productApi.get("/items/");
-      setProducts(response.data);
-      console.log(products)
-      // if (!isFetched) {
-      //   toast.success("Products loaded successfully!");
-      //   setIsFetched(true);
-      // }
+      await dispatch(updateProductStatus({ id, is_deleted: !isDeleted })).unwrap();
+      toast.success(`Product ${!isDeleted ? 'removed' : 'restored'} successfully`);
     } catch (error) {
-      toast.error("Error fetching products.");
-      console.error("Error fetching products:", error);
+      toast.error('Error updating product status');
     }
   };
-  console.log(products)
-  // Filter products based on search term
-  const filteredProducts = products.filter(product => 
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.price.toString().includes(searchTerm)
-  );
 
-  const handleDelete = async (productId) => {
-    try {
-      // Using the ViewSet's destroy method which now performs soft delete
-      await productApi.delete(`/items/${productId}/`);
-      toast.success('Product deleted successfully');
-      // Refresh the product list
-      fetchProducts();
-    } catch (error) {
-      toast.error('Error deleting product');
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to permanently delete this product?')) {
+      try {
+        await dispatch(deleteProduct(id)).unwrap();
+        toast.success('Product deleted successfully');
+      } catch (error) {
+        toast.error('Error deleting product');
+      }
     }
   };
+
+  if (status === 'loading') {
+    return <div>Loading...</div>;
+  }
+
+  if (status === 'failed') {
+    return <div>Error: {error}</div>;
+  }
 
   return (
-    <div className="ml-64 px-8 py-6">
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="colored"
-      />
-      
-      {/* Header and Search Section */}
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-medium text-gray-800">Products</h1>
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 rounded-lg border border-gray-200 w-64 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            />
-            <Search className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
-          </div>
-          
-          <Link to="/admin/products/add">
-          <button className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
-            <Plus className="w-5 h-5" />
-            ADD NEW PRODUCT
-          </button>
-          </Link>
-        </div>
+    <div className="ml-64 p-8">
+      <ToastContainer position="top-right" />
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Products</h1>
+        <Link to="/admin/products/add" className="btn btn-primary">
+          Add New Product
+        </Link>
       </div>
-
-      {/* Products Table */}
-      <div className="bg-white rounded-lg shadow">
-        <table className="w-full">
+      <div className="overflow-x-auto">
+        <table className="min-w-full bg-white">
           <thead>
-            <tr className="text-left border-b">
-              <th className="px-6 py-4">Image</th>
-              <th className="px-6 py-4">Item Name</th>
-              <th className="px-6 py-4">Category</th>
-              <th className="px-6 py-4">Price</th>
-              <th className="px-6 py-4">Stock</th>
-              {/* <th className="px-6 py-4">View</th> */}
-              <th className="px-6 py-4">Size</th>
-              <th className="px-6 py-4">Action</th>
+            <tr>
+              <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Image
+              </th>
+              <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Item Name
+              </th>
+              <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Category
+              </th>
+              <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Price
+              </th>
+              <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Stock
+              </th>
+              <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Size
+              </th>
+              <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Status
+              </th>
+              <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Action
+              </th>
             </tr>
           </thead>
           <tbody>
-            {filteredProducts.map((product) => (
-              
-              <tr key={product.id} className="border-b hover:bg-gray-50">
-                <td className="px-6 py-4">
-                  <img
-                    src={`${product.images[0].image}`}
-                    alt={product.name}
-                    className="w-16 h-16 object-cover rounded"
-                  />
-                </td>
-                <td className="px-6 py-4">{product.name}</td>
-                <td className="px-6 py-4">{product.category.name}</td>
-                <td className="px-6 py-4">₹{product.price}</td>
-                <td className="px-6 py-4">{product.stock_quantity}</td>
-                
-                {/* <td className="px-6 py-4">
-                  <button className="px-4 py-1 text-sm rounded bg-green-500 text-white hover:bg-green-600">
-                    review
-                  </button>
-                </td> */}
-                <td>
-                {product.sizes.map((size) => (
-                    <span key={size.id}>{size.name}</span>
-                ))}
-            </td>
-                <td className="px-6 py-4">
-                  <div className="flex gap-2">
-                  <Link to="/admin/products/edit">
-                    <button className="p-1 rounded hover:bg-gray-100">
-                      <Pencil className="w-4 h-4 text-gray-600" />
+            {Array.isArray(products) && products.length > 0 ? (
+              products.map((product) => (
+                <tr key={product.id}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <img
+                      src={product.images[0]?.image || "/placeholder.svg"}
+                      alt={product.name}
+                      className="h-10 w-10 rounded-full object-cover"
+                    />
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">{product.name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{product.category.name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">₹{product.price}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{product.stock_quantity}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {product.sizes.map(size => size.name).join(', ')}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <button
+                      onClick={() => handleStatusChange(product.id, product.is_deleted)}
+                      className={`px-2 py-1 rounded ${
+                        !product.is_deleted
+                          ? 'bg-red-500 text-white'
+                          : 'bg-green-500 text-white'
+                      }`}
+                    >
+                      {!product.is_deleted ? 'Remove' : 'Make Available'}
                     </button>
-                    </Link>
-                    <button onClick={() => handleDelete(product.id)} className="p-1 rounded hover:bg-gray-100">
-                      <Trash2 className="w-4 h-4 text-red-500" />
-                    </button>
-                  </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center space-x-4">
+                      <Link to={`/admin/products/edit/${product.id}`}>
+                        <PencilIcon className="h-5 w-5 text-blue-500 hover:text-blue-700" />
+                      </Link>
+                      <button onClick={() => handleDelete(product.id)}>
+                        <TrashIcon className="h-5 w-5 text-red-500 hover:text-red-700" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="8" className="px-6 py-4 text-center">
+                  No products found
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
@@ -150,3 +138,4 @@ const ProductList = () => {
 };
 
 export default ProductList;
+

@@ -22,22 +22,6 @@ from datetime import timedelta
 
 User = get_user_model()
 
-# class SignupView(APIView):
-#     def post(self, request):
-#         serializer = UserSerializer(data=request.data)
-
-#         if serializer.is_valid():
-#             user = serializer.save()
-#             UserProfile.objects.create(user=user)
-#             refresh = RefreshToken.for_user(user)
-#             return Response({
-#                 'user': UserSerializer(user).data,
-#                 'token': str(refresh.access_token),  # Access token
-#                 'refresh_token': str(refresh)         # Refresh token
-#             }, status=status.HTTP_201_CREATED)
-        
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 class SignupView(APIView):
     def post(self, request):
         serializer = UserSerializer(data=request.data)

@@ -1,135 +1,123 @@
-import React, { useState } from 'react';
-import { Search, Bell, ShoppingCart, Heart, User, Menu, X,LogOut } from 'lucide-react';
-import logo from '../../../assets/logo.png'
-import { clearAuthData } from '../../../redux/auth/authSlice';
-import { useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from "react"
+import { Link } from "react-router-dom"
+import { ShoppingCart, Heart, User, Search } from "lucide-react"
+import { useSelector, useDispatch } from "react-redux"
+import { clearAuthData, setAuthData } from "../../../redux/auth/authSlice"
+import { clearProfile } from "../../../redux/profile/profileSlice"
+import logo from "../../../assets/logo.png"
 
-const Navbar = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const dispatch=useDispatch()
-  const navigate=useNavigate()
+export default function Navbar() {
+  const [searchQuery, setSearchQuery] = useState("")
+  const { isAuthenticated, user } = useSelector((state) => state.auth)
+  const { data: profile } = useSelector((state) => state.profile)
+  const dispatch = useDispatch()
 
-  const menuItems = ['Home', 'About', 'School uniform', 'Hospital Uniform', 'Industrial Uniform', 'Security', 'Cadet'];
+  useEffect(() => {
+    const token = localStorage.getItem("token")
+    const user = JSON.parse(localStorage.getItem("user"))
+    if (token && user) {
+      dispatch(setAuthData({ user, token }))
+    }
+  }, [dispatch])
+
   const handleLogout = () => {
     dispatch(clearAuthData())
-    navigate("/login")
+    dispatch(clearProfile())
+    localStorage.removeItem("token")
+    localStorage.removeItem("user")
   }
+
   return (
-    <nav className="w-full bg-white shadow-sm">
-      {/* Top bar */}
-      <div className="max-w-7xl mx-auto px-4 py-3">
-        <div className="flex items-center justify-between">
-          {/* Logo and hamburger */}
-          <div className="flex items-center gap-4">
-            <button
-              className="lg:hidden"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              {isMenuOpen ? (
-                <X className="w-6 h-6 text-gray-600" />
-              ) : (
-                <Menu className="w-6 h-6 text-gray-600" />
-              )}
-            </button>
-            {/* Logo placeholder */}
-            <div className="w-32 lg:w-40">
-            <img src={logo} alt="Company Logo" height="auto"/>
-            </div>
-          </div>
+    <header className="w-full bg-white shadow-sm">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          <Link to="/" className="flex items-center">
+            <img src={logo || "/placeholder.svg"} alt="Uniformis Shoppe" className="h-10" />
+          </Link>
 
-          {/* Search bar - desktop */}
-          <div className="hidden md:flex flex-1 max-w-xl mx-8">
-            <div className="relative w-full">
-              <input
-                type="text"
-                placeholder="Search"
-                className="w-full px-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:border-gray-400"
-              />
-              <button className="absolute right-3 top-1/2 -translate-y-1/2 bg-[#222222] text-white px-6 py-1 rounded-full">
-                Search
-              </button>
-            </div>
-          </div>
-
-          {/* Icons */}
-          <div className="flex items-center gap-4 lg:gap-6">
-            <button
-              className="md:hidden"
-              onClick={() => setIsSearchOpen(!isSearchOpen)}
-            >
-              <Search className="w-6 h-6 text-gray-600" />
-            </button>
-            <Bell className="hidden sm:block w-6 h-6 text-gray-600 cursor-pointer hover:text-gray-800" />
-            <ShoppingCart className="w-6 h-6 text-gray-600 cursor-pointer hover:text-gray-800" />
-            <Heart className="hidden sm:block w-6 h-6 text-gray-600 cursor-pointer hover:text-gray-800" />
-            <User className="w-6 h-6 text-gray-600 cursor-pointer hover:text-gray-800" />
-            <button 
-              onClick={handleLogout} 
-              className="text-gray-700 hover:text-gray-900"
-            >
-              <LogOut size={20} />
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile search */}
-        {isSearchOpen && (
-          <div className="mt-3 md:hidden">
+          <div className="flex-1 max-w-xl mx-8">
             <div className="relative">
               <input
                 type="text"
                 placeholder="Search"
-                className="w-full px-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:border-gray-400"
+                className="w-full px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-primary"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <button className="absolute right-3 top-1/2 -translate-y-1/2 bg-[#222222] text-white px-6 py-1 rounded-full">
-                Search
+              <button className="absolute right-3 top-1/2 -translate-y-1/2">
+                <Search className="h-5 w-5 text-gray-400" />
               </button>
             </div>
           </div>
-        )}
-      </div>
 
-      {/* Bottom menu - desktop */}
-      <div className="hidden lg:block border-t border-gray-100">
-        <div className="max-w-7xl mx-auto px-4">
-          <ul className="flex flex-wrap space-x-8">
-            {menuItems.map((item) => (
-              <li key={item}>
-                <a
-                  href="#"
-                  className="inline-block py-4 text-gray-600 hover:text-gray-900 whitespace-nowrap"
+          <div className="flex items-center gap-6">
+            <Link to="/wishlist" className="hover:text-primary">
+              <Heart className="h-6 w-6" />
+            </Link>
+            <Link to="/cart" className="hover:text-primary">
+              <ShoppingCart className="h-6 w-6" />
+            </Link>
+            {isAuthenticated ? (
+              <div className="flex items-center gap-4">
+                <div className="relative group">
+                  <button className="flex items-center gap-2">
+                    {profile?.profile_picture ? (
+                      <img
+                        src={profile.profile_picture || "/placeholder.svg"}
+                        alt={user?.username}
+                        className="h-8 w-8 rounded-full"
+                      />
+                    ) : (
+                      <User className="h-6 w-6" />
+                    )}
+                    <span>{user?.username}</span>
+                  </button>
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 invisible group-hover:visible">
+                    <Link to="/profile" className="block px-4 py-2 hover:bg-gray-100">
+                      Profile
+                    </Link>
+                    <Link to="/orders" className="block px-4 py-2 hover:bg-gray-100">
+                      Orders
+                    </Link>
+                  </div>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors duration-200"
                 >
-                  {item}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      {/* Mobile menu */}
-      {isMenuOpen && (
-        <div className="lg:hidden border-t border-gray-100">
-          <div className="px-4 py-2">
-            <ul className="space-y-2">
-              {menuItems.map((item) => (
-                <li key={item}>
-                  <a
-                    href="#"
-                    className="block py-2 px-4 text-gray-600 hover:bg-gray-50 rounded-lg"
-                  >
-                    {item}
-                  </a>
-                </li>
-              ))}
-            </ul>
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <Link to="/login" className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90">
+                Login
+              </Link>
+            )}
           </div>
         </div>
-      )}
-    </nav>
-  );
-};
 
-export default Navbar;
+        <nav className="flex items-center gap-8 py-4">
+          <Link to="/about" className="hover:text-primary">
+            About
+          </Link>
+          <Link to="/school-uniform" className="hover:text-primary">
+            School Uniform
+          </Link>
+          <Link to="/hospital-uniform" className="hover:text-primary">
+            Hospital Uniform
+          </Link>
+          <Link to="/industrial-uniform" className="hover:text-primary">
+            Industrial Uniform
+          </Link>
+          <Link to="/corporate-uniform" className="hover:text-primary">
+            Corporate Uniform
+          </Link>
+          <Link to="/offers" className="hover:text-primary">
+            Offers
+          </Link>
+        </nav>
+      </div>
+    </header>
+  )
+}
+
