@@ -3,7 +3,6 @@ import "react-toastify/dist/ReactToastify.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom"
 import Login from "./components/user/login/Login"
 import Signup from "./components/user/signup/Signup.jsx"
-import Home from "./pages/user/Home.jsx"
 import AdminLayout from "./pages/admin/AdminLayout.jsx"
 import AdminLogin from "./components/admin/AdminLogin"
 import AdminDashboard from "./components/admin/Dashboard/AdminDashboard.jsx"
@@ -17,7 +16,9 @@ import SizeManagement from "./components/admin/Products/Size.jsx";
 import CategoryManagement from "./components/admin/Products/Category.jsx";
 import EditProduct from "./components/admin/Products/EditProduct.jsx";
 import CustomerManagement from "./components/admin/CustomerManagement/CustomerManagement.jsx";
-
+import UserLayout from "./pages/user/UserLayout.jsx";
+import ProductDisplay from "./components/user/productCard/ProductDisplay.jsx";
+import ProductDetail from "./components/user/productCard/ProductDetail.jsx";
 function App() {
   return (
     <>
@@ -41,8 +42,13 @@ function App() {
         
         
         {/* User routes */}
+        <Route path='/user' element={<UserLayout/>}>
+          <Route path="homepage" element={<ProductDisplay />} />
+          <Route path="product/:id" element={<ProductDetail />} />
+        </Route>
+
         <Route path="/user-profile" element={<UserProfile />} />
-        <Route path="/home" element={<Home />} />
+        {/* <Route path="/home" element={<Home />} /> */}
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<Login />} />

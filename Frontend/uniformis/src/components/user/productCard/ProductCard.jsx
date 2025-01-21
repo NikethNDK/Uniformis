@@ -7,7 +7,7 @@ const ProductCard = ({ product }) => {
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <div className="relative h-48 overflow-hidden">
+      <div className="relative h-49 overflow-hidden">
         {product.images && product.images[0] && (
           <img 
             src={product.images[0].image} 

@@ -23,7 +23,7 @@ const Login = () => {
             localStorage.setItem('token', token);
             dispatch(setAuthData(response.data));
             setError(''); 
-            navigate('/home');
+            navigate('/user/homepage');
         } catch (error) {
             if (error.response && error.response.status === 401) {
                

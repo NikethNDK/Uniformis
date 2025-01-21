@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProducts } from '../../../redux/product/userProductSlice';
 import ProductCard from './ProductCard';
+import { Link } from 'react-router-dom';
 
 const ProductDisplay = () => {
   const dispatch = useDispatch();
@@ -37,10 +38,17 @@ const ProductDisplay = () => {
       {categories.map(category => (
         <div key={category.id} className="mb-12">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">{category.name}</h2>
+          
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {productsByCategory[category.id]?.map(product => (
-              <ProductCard key={product.id} product={product} />
-            ))}
+             <Link 
+             key={product.id} 
+             to={`/user/product/${product.id}`} 
+             className="transition-transform duration-300 hover:scale-105"
+           >
+             <ProductCard product={product} />
+           </Link>
+         ))}
           </div>
         </div>
       ))}
