@@ -43,6 +43,7 @@ class Product(models.Model):
     def restore(self):
         self.is_deleted = False
         self.save()
+
     class Meta:
         db_table = 'product'
     

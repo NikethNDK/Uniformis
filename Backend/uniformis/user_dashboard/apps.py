@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class UniformisAdminConfig(AppConfig):
+class UserDashboardConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'uniformis_admin'
+    name = 'user_dashboard'

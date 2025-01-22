@@ -7,11 +7,38 @@ from .serializers import (
     CategorySerializer, ProductSerializer, SizeSerializer,
     ReviewSerializer, ProductDetailSerializer
 )
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.filters import SearchFilter
+from rest_framework import viewsets
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [permissions.IsAdminUser]
+    # permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = Category.objects.all()
+        active_only = self.request.query_params.get('active_only', None)
+        
+        if active_only == 'true':
+            queryset = queryset.filter(is_active=True)
+        elif not self.request.user.is_staff:
+            queryset = queryset.filter(is_active=True)
+        
+        return queryset
+    # def get_queryset(self):
+    #     if self.request.user.is_staff:
+    #         return Category.objects.all()
+    #     return Category.objects.filter(is_active=True)
+
+    @action(detail=True, methods=['PATCH'])
+    def toggle_active(self, request, pk=None):
+        category = self.get_object()
+        category.is_active = not category.is_active
+        category.save()
+        return Response({'status': 'category status updated'})
 
 class SizeViewSet(viewsets.ModelViewSet):
     queryset = Size.objects.all()
@@ -26,36 +53,70 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+class ProductPagination(PageNumberPagination):
+    page_size=6
+
 class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.filter(is_active=True)
+    queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    pagination_class = ProductPagination
+    permission_classes = [IsAuthenticated]
+    filter_backends = [SearchFilter]
+    search_fields = ['name']
+
+    # def get_queryset(self):
+    #     queryset = super().get_queryset()
+    #     if not self.request.user.is_staff:
+    #         queryset = queryset.filter(is_active=True)
+    #     return queryset
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
             return ProductDetailSerializer
         return ProductSerializer
 
-    @action(detail=False, methods=['GET'])
-    def best_sellers(self, request):
-        best_sellers = Product.objects.annotate(
-            order_count=Count('orderitem')
-        ).order_by('-order_count')[:8]
-        serializer = self.get_serializer(best_sellers, many=True)
-        return Response(serializer.data)
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            # return Product.objects.all()
+            return Product.objects.filter(is_deleted=False)
+        return Product.objects.filter(is_active=True,is_deleted=False)
+    
+    # @action(detail=False, methods=['GET'])
+    # def best_sellers(self, request):
+    #     best_sellers = Product.objects.annotate(
+    #         order_count=Count('orderitem')
+    #     ).order_by('-order_count')[:8]
+    #     serializer = self.get_serializer(best_sellers, many=True)
+    #     return Response(serializer.data)
 
-    @action(detail=False, methods=['GET'])
-    def offers(self, request):
-        products_with_offers = Product.objects.filter(
-            offer__isnull=False
-        ).order_by('-offer__discount_percentage')[:8]
-        serializer = self.get_serializer(products_with_offers, many=True)
-        return Response(serializer.data)
+    # @action(detail=False, methods=['GET'])
+    # def offers(self, request):
+    #     products_with_offers = Product.objects.filter(
+    #         offer__isnull=False
+    #     ).order_by('-offer__discount_percentage')[:8]
+    #     serializer = self.get_serializer(products_with_offers, many=True)
+    #     return Response(serializer.data)
 
     @action(detail=True, methods=['POST'])
     def update_stock(self, request, pk=None):
         if not request.user.is_staff:
             return Response(status=status.HTTP_403_FORBIDDEN)
+    
+    @action(detail=True, methods=['PATCH'])
+    def toggle_active(self, request, pk=None):
+        product = self.get_object()
+        product.is_active = not product.is_active
+        product.save()
+        return Response({'status': 'product status updated'})
         
         product = self.get_object()
         new_stock = request.data.get('stock_quantity')
@@ -68,7 +129,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def perform_destroy(self, instance):
         # Override destroy to perform soft delete
-        instance.is_active = False
+        instance.is_deleted = True
         instance.save()
 
     @action(detail=True, methods=['POST'])

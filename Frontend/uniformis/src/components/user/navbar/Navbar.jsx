@@ -31,7 +31,7 @@ export default function Navbar() {
     <header className="w-full bg-white shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center">
+          <Link to="/user/homepage" className="flex items-center">
             <img src={logo || "/placeholder.svg"} alt="Uniformis Shoppe" className="h-10" />
           </Link>
 

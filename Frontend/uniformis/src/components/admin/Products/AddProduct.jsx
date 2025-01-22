@@ -1,92 +1,132 @@
-import React, { useState, useEffect } from 'react';
-import { productApi } from '../../../adminaxiosconfig';
-import { Link, useNavigate } from 'react-router-dom';
-import Button from 'react-bootstrap/Button';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import React, { useState, useEffect, useCallback } from "react"
+import { productApi } from "../../../adminaxiosconfig"
+import { Link, useNavigate } from "react-router-dom"
+import Button from "react-bootstrap/Button"
+import { toast, ToastContainer } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
+import { Modal } from "../../ui/modal"
+import ImageCropper from "./ImageCropper"
 
 const AddProduct = () => {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
   const [formData, setFormData] = useState({
-    title: '',
-    price: '',
-    category: '',
-    description: '',
-    size: '',
-    stock: '',
-    images: []
-  });
-  const [categories, setCategories] = useState([]);
-  const [sizes, setSizes] = useState([]);
-  const [loading, setLoading] = useState(false);
+    title: "",
+    price: "",
+    category: "",
+    description: "",
+    size: "",
+    stock: "",
+  })
+  const [categories, setCategories] = useState([])
+  const [sizes, setSizes] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [currentImage, setCurrentImage] = useState(null)
+  const [cropModalOpen, setCropModalOpen] = useState(false)
+  const [croppedImages, setCroppedImages] = useState([])
 
   useEffect(() => {
-    fetchCategories();
-    fetchSizes();
-  }, []);
+    fetchCategories()
+    fetchSizes()
+  }, [])
 
   const fetchCategories = async () => {
     try {
-      const response = await productApi.get('/categories/');
-      setCategories(response.data);
+      const response = await productApi.get("/categories/", {
+        params: { active_only: true },
+      })
+      setCategories(response.data)
+      console.log(response.data)
     } catch (error) {
-      toast.error('Error fetching categories');
+      toast.error("Error fetching categories")
     }
-  };
+  }
 
   const fetchSizes = async () => {
     try {
-      const response = await productApi.get('/size/');
-      setSizes(response.data);
+      const response = await productApi.get("/size/")
+      setSizes(response.data)
     } catch (error) {
-      toast.error('Error fetching sizes');
+      toast.error("Error fetching sizes")
     }
-  };
+  }
 
-  const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length > 5) {
-      toast.warning('Maximum 5 images allowed');
-      return;
+  const handleImageUpload = useCallback((e) => {
+    const files = Array.from(e.target.files)
+    
+    if (files.length === 0) return;
+    
+    if (croppedImages.length + files.length > 5) {
+      toast.error("Maximum 5 images allowed")
+      return
     }
-    setFormData({ ...formData, images: files });
-  };
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      setCurrentImage(reader.result)
+      setCropModalOpen(true)
+    }
+    reader.readAsDataURL(files[0])
+  }, [croppedImages.length])
+
+  const handleCropComplete = useCallback((croppedImage) => {
+    setCroppedImages((prev) => [...prev, croppedImage])
+    setCropModalOpen(false)
+    setCurrentImage(null)
+  }, [])
+
+  const handleCropCancel = useCallback(() => {
+    setCropModalOpen(false)
+    setCurrentImage(null)
+  }, [])
+
+  const handleRemoveImage = (index) => {
+    setCroppedImages((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const handleStockChange = (e) => {
+    const value = Number.parseInt(e.target.value)
+    if (value < 0) {
+      toast.error("Stock cannot be negative")
+      return
+    }
+    setFormData({ ...formData, stock: value })
+  }
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+    e.preventDefault()
+    if (croppedImages.length === 0) {
+      toast.error("Please add at least one image")
+      return
+    }
 
-    const data = new FormData();
-    data.append('title', formData.title);
-    data.append('price', formData.price);
-    data.append('category', formData.category);  // This will now pass the category ID correctly
-    data.append('description', formData.description);
-    data.append('stock', formData.stock);
-    data.append('sizes', formData.size);  // Changed to single size
+    const formDataToSend = new FormData()
+    Object.keys(formData).forEach((key) => {
+      formDataToSend.append(key, formData[key])
+    })
 
-    // Append images
-    formData.images.forEach(image => {
-      data.append('images', image);
-    });
+    croppedImages.forEach((image, index) => {
+      formDataToSend.append("images", image, `image-${index}.jpg`)
+    })
+    setLoading(true)
 
     try {
-      const response = await productApi.post('/addproduct/', data, {
+      const response = await productApi.post("/addproduct/", formDataToSend, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          "Content-Type": "multipart/form-data",
         },
-      });
-      
+      })
+
       if (response.data) {
-        toast.success('Product added successfully!');
-        setTimeout(() => navigate('/admin/products'), 1500);
+        toast.success("Product added successfully!")
+        setTimeout(() => navigate("/admin/products"), 1500)
       }
     } catch (error) {
-      const errorMessage = error.response?.data?.error || 'Error adding product';
-      toast.error(errorMessage);
+      const errorMessage = error.response?.data?.error || "Error adding product"
+      toast.error(errorMessage)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div className="ml-64 p-8">
@@ -124,8 +164,8 @@ const AddProduct = () => {
                   className="form-control w-full"
                   value={formData.category}
                   onChange={(e) => {
-                    console.log('Selected category:', e.target.value);  // Debug log
-                    setFormData({ ...formData, category: e.target.value });
+                    console.log("Selected category:", e.target.value) // Debug log
+                    setFormData({ ...formData, category: e.target.value })
                   }}
                   required
                 >
@@ -171,12 +211,34 @@ const AddProduct = () => {
                 <input
                   type="file"
                   className="form-control w-full"
-                  multiple
                   accept="image/*"
                   onChange={handleImageUpload}
-                  required
+                  disabled={croppedImages.length >= 5}
                 />
-                <small className="text-gray-500">Maximum 5 images allowed</small>
+                <small className="text-gray-500">
+                  Maximum 5 images allowed. Images will be cropped to 800x800 pixels.
+                </small>
+
+                {croppedImages.length > 0 && (
+                  <div className="mt-4 grid grid-cols-5 gap-2">
+                    {croppedImages.map((image, index) => (
+                      <div key={index} className="relative">
+                        <img
+                          src={URL.createObjectURL(image)}
+                          alt={`Product ${index + 1}`}
+                          className="w-full h-20 object-cover rounded"
+                        />
+                        <button
+                          type="button"
+                          className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
+                          onClick={() => handleRemoveImage(index)}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="form-group">
@@ -185,18 +247,21 @@ const AddProduct = () => {
                   type="number"
                   className="form-control w-full"
                   value={formData.stock}
-                  onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                  onChange={handleStockChange}
+                  min="0"
+                  onKeyDown={(e) => {
+                    if (e.key === "-") {
+                      e.preventDefault()
+                    }
+                  }}
                   required
                 />
+                <small className="text-gray-500">Stock must be 0 or greater</small>
               </div>
 
               <div className="space-y-2">
-                <button
-                  type="submit"
-                  className="btn btn-primary w-full"
-                  disabled={loading}
-                >
-                  {loading ? 'Adding Product...' : 'Add Product'}
+                <button type="submit" className="btn btn-primary w-full" disabled={loading}>
+                  {loading ? "Adding Product..." : "Add Product"}
                 </button>
                 <Link to="/admin/products">
                   <Button variant="danger" className="w-full mt-2">
@@ -208,11 +273,22 @@ const AddProduct = () => {
           </div>
         </div>
       </div>
+      <Modal isOpen={cropModalOpen} onClose={handleCropCancel}>
+        {currentImage && (
+          <ImageCropper
+            image={currentImage}
+            onCropComplete={handleCropComplete}
+            onCropCancel={handleCropCancel}
+          />
+        )}
+      </Modal>
     </div>
-  );
-};
+  )
+}
 
-export default AddProduct;
+export default AddProduct
+
+
 
 
 
